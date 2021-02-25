@@ -47,7 +47,13 @@ public class DimensionalDoorBlock extends DoorBlock implements RiftProvider<Entr
 			}
 
 	}
-
+	@Override
+	public void onBreak(World world, BlockPos pos, BlockState state, PlayerEntity player) {
+		if (world.getBlockEntity(pos) instanceof EntranceRiftBlockEntity) {
+			System.out.println("is entrance block and tried to break");
+			((EntranceRiftBlockEntity) world.getBlockEntity(pos)).destroyPortal();
+		}
+	}
 	@Override
 	public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hitResult) {
 		state = state.cycle(OPEN);
@@ -74,8 +80,14 @@ public class DimensionalDoorBlock extends DoorBlock implements RiftProvider<Entr
 
 	@Override
 	public void afterBreak(World world, PlayerEntity player, BlockPos pos, BlockState blockState, BlockEntity entity, ItemStack stack) {
+		System.out.println("SDESFDS");
 		if (entity instanceof EntranceRiftBlockEntity) {
+			//System.out.println("is entrance block and tried to break");
+			((EntranceRiftBlockEntity)world.getBlockEntity(pos)).destroyPortal();
+			((EntranceRiftBlockEntity) entity).destroyPortal();
+
 			world.setBlockState(pos, ModBlocks.DETACHED_RIFT.getDefaultState());
+
 			((DetachedRiftBlockEntity) world.getBlockEntity(pos)).setData(((EntranceRiftBlockEntity) entity).getData());
 		}
 	}

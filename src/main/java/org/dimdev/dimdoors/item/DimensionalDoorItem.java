@@ -2,6 +2,9 @@ package org.dimdev.dimdoors.item;
 
 import java.util.function.Consumer;
 
+import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.ItemStack;
 import org.dimdev.dimdoors.ModConfig;
 import org.dimdev.dimdoors.block.ModBlocks;
 import org.dimdev.dimdoors.block.RiftProvider;
@@ -26,6 +29,8 @@ public class DimensionalDoorItem extends TallBlockItem {
 		super(block, settings);
 		this.setupFunction = setupFunction;
 	}
+
+
 
 	@Override
 	public ActionResult place(ItemPlacementContext context) {
