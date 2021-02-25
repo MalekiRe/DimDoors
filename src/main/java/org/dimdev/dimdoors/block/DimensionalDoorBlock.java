@@ -1,6 +1,8 @@
 package org.dimdev.dimdoors.block;
 
+import com.qouteall.immersive_portals.portal.Portal;
 import io.github.boogiemonster1o1.libcbe.api.ConditionalBlockEntityProvider;
+import net.minecraft.util.math.Vec3d;
 import org.dimdev.dimdoors.block.entity.DetachedRiftBlockEntity;
 import org.dimdev.dimdoors.block.entity.EntranceRiftBlockEntity;
 
@@ -19,6 +21,12 @@ import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
+import org.dimdev.dimdoors.block.entity.RiftBlockEntity;
+import org.dimdev.dimdoors.immersiveportalintegration.ImmersivePortalUtil;
+import org.dimdev.dimdoors.item.RiftSignatureItem;
+import org.dimdev.dimdoors.rift.targets.EntityTarget;
+import org.dimdev.dimdoors.rift.targets.Targets;
+import org.dimdev.dimdoors.util.Location;
 
 public class DimensionalDoorBlock extends DoorBlock implements RiftProvider<EntranceRiftBlockEntity>, ConditionalBlockEntityProvider {
 	public DimensionalDoorBlock(Settings settings) {
@@ -32,11 +40,12 @@ public class DimensionalDoorBlock extends DoorBlock implements RiftProvider<Entr
 			return;
 		}
 
-		BlockState doorState = world.getBlockState(state.get(HALF) == DoubleBlockHalf.UPPER ? pos.down() : pos);
+			BlockState doorState = world.getBlockState(state.get(HALF) == DoubleBlockHalf.UPPER ? pos.down() : pos);
 
-		if (doorState.getBlock() == this && doorState.get(DoorBlock.OPEN)) { // '== this' to check if not half-broken
-			this.getRift(world, pos, state).teleport(entity);
-		}
+			if (doorState.getBlock() == this && doorState.get(DoorBlock.OPEN)) { // '== this' to check if not half-broken
+				this.getRift(world, pos, state).createPortal();
+			}
+
 	}
 
 	@Override

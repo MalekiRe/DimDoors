@@ -39,6 +39,11 @@ public abstract class VirtualTarget implements Target {
 		return tag;
 	}
 
+	public Location getLocation()
+	{
+		return this.location;
+	}
+
 	public void register() {
 	}
 

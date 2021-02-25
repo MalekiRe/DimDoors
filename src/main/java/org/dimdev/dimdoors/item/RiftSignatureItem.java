@@ -2,6 +2,10 @@ package org.dimdev.dimdoors.item;
 
 import java.util.List;
 
+import com.qouteall.immersive_portals.portal.Portal;
+import net.minecraft.util.BlockRotation;
+import net.minecraft.util.math.Quaternion;
+import net.minecraft.util.math.Vec3d;
 import org.dimdev.dimdoors.DimensionalDoorsInitializer;
 import org.dimdev.dimdoors.block.ModBlocks;
 import org.dimdev.dimdoors.block.entity.DetachedRiftBlockEntity;
@@ -50,7 +54,7 @@ public class RiftSignatureItem extends Item {
 		BlockPos pos = itemUsageContext.getBlockPos();
 		Hand hand = itemUsageContext.getHand();
 		Direction side = itemUsageContext.getSide();
-
+		Float ourYaw = 0.0F;
 		ItemPlacementContext placementContext = new ItemPlacementContext(itemUsageContext);
 
 		ItemStack stack = player.getStackInHand(hand);
@@ -68,12 +72,15 @@ public class RiftSignatureItem extends Item {
 		RotatedLocation target = getSource(stack);
 
 		if (target == null) {
+
 			// The link signature has not been used. Store its current target as the first location.
 			setSource(stack, new RotatedLocation(world.getRegistryKey(), pos, player.yaw, 0));
+			ourYaw = player.yaw;
 			player.sendMessage(new TranslatableText(this.getTranslationKey() + ".stored"), true);
 			world.playSound(null, player.getBlockPos(), ModSoundEvents.RIFT_START, SoundCategory.BLOCKS, 0.6f, 1);
 		} else {
 			// Place a rift at the saved point
+
 			if (target.getBlockState().getBlock() != ModBlocks.DETACHED_RIFT) {
 				if (!target.getBlockState().getBlock().canMobSpawnInside()) {
 					player.sendMessage(new TranslatableText("tools.target_became_block"), true);
@@ -85,9 +92,10 @@ public class RiftSignatureItem extends Item {
 				DetachedRiftBlockEntity rift1 = (DetachedRiftBlockEntity) target.getBlockEntity();
 				rift1.setDestination(RiftReference.tryMakeRelative(target, new Location((ServerWorld) world, pos)));
 				rift1.register();
+
 			}
 
-			// Place a rift at the target point
+
 			world.setBlockState(pos, ModBlocks.DETACHED_RIFT.getDefaultState());
 			DetachedRiftBlockEntity rift2 = (DetachedRiftBlockEntity) world.getBlockEntity(pos);
 			rift2.setDestination(RiftReference.tryMakeRelative(new Location((ServerWorld) world, pos), target));
@@ -104,6 +112,7 @@ public class RiftSignatureItem extends Item {
 
 		return ActionResult.SUCCESS;
 	}
+
 
 	public static void setSource(ItemStack itemStack, RotatedLocation destination) {
 		if (!itemStack.hasTag()) itemStack.setTag(new CompoundTag());

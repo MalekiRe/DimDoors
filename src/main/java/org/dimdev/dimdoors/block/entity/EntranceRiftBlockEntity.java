@@ -2,7 +2,14 @@ package org.dimdev.dimdoors.block.entity;
 
 import java.util.Optional;
 
+import net.fabricmc.fabric.api.util.NbtType;
+import net.minecraft.block.Block;
+import net.minecraft.util.math.BlockPos;
 import org.dimdev.dimdoors.ModConfig;
+import org.dimdev.dimdoors.immersiveportalintegration.ImmersivePortalUtil;
+import org.dimdev.dimdoors.rift.targets.EntityTarget;
+import org.dimdev.dimdoors.rift.targets.Targets;
+import org.dimdev.dimdoors.util.Location;
 import org.dimdev.dimdoors.util.TeleportUtil;
 
 import net.minecraft.block.BlockState;
@@ -14,6 +21,7 @@ import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
 
 public class EntranceRiftBlockEntity extends RiftBlockEntity {
+	boolean portalCreated = false;
 	public EntranceRiftBlockEntity() {
 		super(ModBlockEntityTypes.ENTRANCE_RIFT);
 	}
@@ -21,11 +29,17 @@ public class EntranceRiftBlockEntity extends RiftBlockEntity {
 	@Override
 	public void fromTag(BlockState state, CompoundTag nbt) {
 		super.fromTag(state, nbt);
+		if(nbt.contains("portalCreated")) {
+			portalCreated = nbt.getBoolean("portalCreated");
+		}
 	}
 
 	@Override
 	public CompoundTag toTag(CompoundTag tag) {
 		tag = super.toTag(tag);
+
+		if(portalCreated)
+			tag.putBoolean("portalCreated", portalCreated);
 		return tag;
 	}
 
@@ -38,6 +52,19 @@ public class EntranceRiftBlockEntity extends RiftBlockEntity {
 		}
 
 		return status;
+	}
+
+	public void createPortal()
+	{
+		if(!portalCreated) {
+			portalCreated = true;
+			EntityTarget target = this.getTarget().as(Targets.ENTITY);
+			if (target instanceof RiftBlockEntity) {
+
+				RiftBlockEntity riftTarget = (RiftBlockEntity) target;
+				ImmersivePortalUtil.createBiDirectionalPortal(new Location(this.getWorld().getRegistryKey(), this.getPos()), new Location(riftTarget.getWorld().getRegistryKey(), riftTarget.getPos()), (float) (world.getBlockState(this.getPos()).get(DoorBlock.FACING).asRotation()*Math.PI/180));
+			}
+		}
 	}
 
 	@Override

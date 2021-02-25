@@ -29,6 +29,8 @@ dependencies {
     mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
     modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+	modImplementation ('com.github.qouteall.ImmersivePortalsMod:build:v0.80-1.16')
+
 	includeCompile("com.flowpowered:flow-math:1.0.3")
 	includeCompile("org.jgrapht:jgrapht-core:1.1.0")
 	includeCompile("com.github.DimensionalDevelopment:poly2tri.java:0.1.1")
