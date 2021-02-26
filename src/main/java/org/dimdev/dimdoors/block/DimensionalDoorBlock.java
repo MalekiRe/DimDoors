@@ -43,7 +43,7 @@ public class DimensionalDoorBlock extends DoorBlock implements RiftProvider<Entr
 			BlockState doorState = world.getBlockState(state.get(HALF) == DoubleBlockHalf.UPPER ? pos.down() : pos);
 
 			if (doorState.getBlock() == this && doorState.get(DoorBlock.OPEN)) { // '== this' to check if not half-broken
-				this.getRift(world, pos, state).createPortal();
+
 			}
 
 	}
@@ -53,12 +53,18 @@ public class DimensionalDoorBlock extends DoorBlock implements RiftProvider<Entr
 			System.out.println("is entrance block and tried to break");
 			((EntranceRiftBlockEntity) world.getBlockEntity(pos)).destroyPortal();
 		}
+		else
+		{
+			System.out.println("is not entrance and tried to break");
+		}
 	}
 	@Override
 	public ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hitResult) {
 		state = state.cycle(OPEN);
 		world.setBlockState(pos, state, 10);
 		world.syncWorldEvent(player, state.get(OPEN) ? this.material == Material.METAL ? 1005 : 1006 : this.material == Material.METAL ? 1011 : 1012, pos, 0);
+		if(!world.isClient())
+			this.getRift(world, pos, state).createPortal();
 		return ActionResult.SUCCESS;
 	}
 

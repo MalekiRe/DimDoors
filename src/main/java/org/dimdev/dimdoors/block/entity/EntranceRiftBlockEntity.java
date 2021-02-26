@@ -28,6 +28,8 @@ import net.minecraft.util.math.Vec3d;
 public class EntranceRiftBlockEntity extends RiftBlockEntity {
 	boolean portalCreated = false;
 	BiDirectionalPortal portal;
+	Location originCheck;
+	Location destCheck;
 	int portalIndex;
 	public EntranceRiftBlockEntity() {
 		super(ModBlockEntityTypes.ENTRANCE_RIFT);
@@ -62,9 +64,17 @@ public class EntranceRiftBlockEntity extends RiftBlockEntity {
 	}
 	public void destroyPortal() {
 		if(portalCreated) {
+			EntityTarget target = this.getTarget().as(Targets.ENTITY);
+			ImmersivePortalUtil.portalLocations.remove(originCheck);
+			ImmersivePortalUtil.portalLocations.remove(destCheck);
+			ImmersivePortalUtil.portals.remove(portal);
 			portal.destroyPortals();
-
+			portalCreated = false;
 			System.out.println("Destorying Portals");
+		}
+		else
+		{
+
 		}
 	}
 	public void createPortal()
@@ -103,11 +113,19 @@ public class EntranceRiftBlockEntity extends RiftBlockEntity {
 
 				double entranceRotation = 0;
 				double exitRotation = 0;
+				double threePixels = 0.999;
 				//origin.add(new Vec3d(1.0, 2.0, 0.0));
-				Vec3d north = new Vec3d(0.5, 1, 0.8125);
-				Vec3d south = new Vec3d(0.5, 1, (3.0/16.0));
-				Vec3d east = new Vec3d((3.0/16.0), 1, 0.5);
-				Vec3d west = new Vec3d(0.8125, 1, 0.5);
+				Vec3d north = new Vec3d(0.5, 1, 1 - threePixels);
+				Vec3d south = new Vec3d(0.5, 1, threePixels);
+				Vec3d east = new Vec3d(threePixels, 1, 0.5);
+				Vec3d west = new Vec3d(1.0-threePixels, 1, 0.5);
+
+				threePixels = -0.001;
+
+				Vec3d north2 = new Vec3d(0.5, 1, 1 - threePixels);
+				Vec3d south2 = new Vec3d(0.5, 1, threePixels);
+				Vec3d east2 = new Vec3d(threePixels, 1, 0.5);
+				Vec3d west2 = new Vec3d(1.0-threePixels, 1, 0.5);
 				switch(world.getBlockState(this.getPos()).get(DoorBlock.FACING))
 				{
 					case EAST : entranceRotation = Math.toRadians(270); origin.add(east); break;
@@ -119,10 +137,10 @@ public class EntranceRiftBlockEntity extends RiftBlockEntity {
 				}
 				switch(riftTarget.getWorld().getBlockState(riftTarget.getPos()).get(DoorBlock.FACING))
 				{
-					case EAST : exitRotation = Math.toRadians(270); dest.add(east); break;
-					case WEST : exitRotation = Math.toRadians(90); dest.add(west); exitingTransform -= 180; break;
-					case NORTH : exitRotation = Math.toRadians(0); dest.add(north); exitingTransform -= 90; break;
-					case SOUTH : exitRotation = Math.toRadians(180); dest.add(south); exitingTransform -= 270; break;
+					case EAST : exitRotation = Math.toRadians(270); dest.add(east2); break;
+					case WEST : exitRotation = Math.toRadians(90); dest.add(west2); exitingTransform -= 180; break;
+					case NORTH : exitRotation = Math.toRadians(0); dest.add(north2); exitingTransform -= 90; break;
+					case SOUTH : exitRotation = Math.toRadians(180); dest.add(south2); exitingTransform -= 270; break;
 					default : break;
 
 				}
