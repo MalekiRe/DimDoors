@@ -2,14 +2,19 @@ package org.dimdev.dimdoors.block.door;
 
 import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents;
 import net.minecraft.block.*;
+import net.minecraft.util.Pair;
 import org.dimdev.dimdoors.DimensionalDoorsInitializer;
+import org.dimdev.dimdoors.api.rift.target.Target;
 import org.dimdev.dimdoors.api.util.math.MathUtil;
 import org.dimdev.dimdoors.api.util.math.TransformationMatrix3d;
 import org.dimdev.dimdoors.block.CoordinateTransformerBlock;
 import org.dimdev.dimdoors.block.ModBlocks;
+import org.dimdev.dimdoors.block.PortalProvider;
 import org.dimdev.dimdoors.block.RiftProvider;
 import org.dimdev.dimdoors.block.entity.DetachedRiftBlockEntity;
 import org.dimdev.dimdoors.block.entity.EntranceRiftBlockEntity;
+import org.dimdev.dimdoors.rift.ImmersivePortalsUtil;
+import org.dimdev.dimdoors.rift.targets.Targets;
 import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.block.entity.BlockEntity;
@@ -32,6 +37,7 @@ import net.minecraft.world.event.GameEvent;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import qouteall.imm_ptl.core.portal.Portal;
 
 public class DimensionalDoorBlock extends WaterLoggableDoorBlock implements RiftProvider<EntranceRiftBlockEntity>, CoordinateTransformerBlock {
 	public DimensionalDoorBlock(Settings settings) {
@@ -57,6 +63,8 @@ public class DimensionalDoorBlock extends WaterLoggableDoorBlock implements Rift
 		BlockPos bottom = top.down();
 		BlockState doorState = world.getBlockState(bottom);
 
+		if (handleIpPortalCreation(doorState, world, bottom)) return;
+
 		if (doorState.getBlock() == this && doorState.get(DoorBlock.OPEN)) { // '== this' to check if not half-broken
 			this.getRift(world, pos, state).teleport(entity);
 			if (DimensionalDoorsInitializer.getConfig().getDoorsConfig().closeDoorBehind) {
@@ -64,6 +72,67 @@ public class DimensionalDoorBlock extends WaterLoggableDoorBlock implements Rift
 				world.setBlockState(bottom, world.getBlockState(bottom).with(DoorBlock.OPEN, false));
 			}
 		}
+	}
+	public boolean handleIpPortalCreation(BlockState state, World world, BlockPos pos) {
+		if (!DimensionalDoorsInitializer.isIpLoaded()) return false;
+		Block sourceBlock = state.getBlock();
+		if (!(sourceBlock instanceof PortalProvider)) return false;
+		PortalProvider sourcePortalProvider = (PortalProvider) sourceBlock;
+
+		EntranceRiftBlockEntity rift = this.getRift(world, pos, state);
+		Target target = rift.getTarget().as(Targets.ENTITY);
+		if (!(target instanceof EntranceRiftBlockEntity)) return false;
+
+		EntranceRiftBlockEntity targetRift = (EntranceRiftBlockEntity) target;
+		if (rift.isIpPortalLinked() && targetRift.isIpPortalLinked()) return true;
+		World targetWorld = targetRift.getWorld();
+
+		BlockPos targetPos = targetRift.getPos();
+
+		BlockState targetState = targetWorld.getBlockState(targetPos);
+		Block targetBlock = targetState.getBlock();
+		if (!(targetBlock instanceof PortalProvider)) return false;
+
+		PortalProvider targetPortalProvider = (PortalProvider) targetBlock;
+
+		if (!targetRift.isIpPortalLinked()) {
+			if(!rift.isIpPortalLinked() || rift.getPortalState()) {
+				targetPortalProvider.setupAsReceivingPortal(targetState, targetWorld, targetPos, state);
+				if (!rift.isIpPortalLinked()) {
+					sourcePortalProvider.setupAsSendingPortal(state, world, pos);
+				}
+			} else {
+				targetPortalProvider.setupAsSendingPortal(targetState, targetWorld, targetPos);
+			}
+		} else {
+			sourcePortalProvider.setupAsSendingPortal(state, world, pos);
+		}
+		targetState = targetWorld.getBlockState(targetPos);
+
+
+		TransformationMatrix3d.TransformationMatrix3dBuilder targetRotatorBuilder = rotatorBuilder(targetState, targetPos);
+		Pair<Portal, Portal> sourcePortals = sourcePortalProvider.createTwoSidedUnboundPortal(state, world, pos, targetRotatorBuilder);
+		Portal sourceFront = sourcePortals.getLeft();
+		Portal sourceBack = sourcePortals.getRight();
+
+		TransformationMatrix3d.TransformationMatrix3dBuilder sourceRotatorBuilder = rotatorBuilder(state, pos);
+		Pair<Portal, Portal> targetPortals = targetPortalProvider.createTwoSidedUnboundPortal(targetState, targetWorld, targetPos, sourceRotatorBuilder);
+		Portal targetFront = targetPortals.getLeft();
+		Portal targetBack = targetPortals.getRight();
+
+		ImmersivePortalsUtil.linkPortals(sourceFront, targetBack);
+		ImmersivePortalsUtil.linkPortals(sourceBack, targetFront);
+
+		sourceFront.world.spawnEntity(sourceFront);
+		sourceBack.world.spawnEntity(sourceBack);
+
+		targetFront.world.spawnEntity(targetFront);
+		targetBack.world.spawnEntity(targetBack);
+
+		System.out.println(sourceFront.getPos());
+		System.out.println(sourceBack.getPos());
+
+		return true;
 	}
 
 	@Override

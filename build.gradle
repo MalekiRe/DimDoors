@@ -137,6 +137,17 @@ dependencies {
 	includeCompile("io.github.onyxstudios.Cardinal-Components-API", "cardinal-components-chunk", "3.0.0-nightly.1.17-pre2")
 //	includeCompile("me.sargunvohra.mcmods", "autoconfig1u", "3.3.1")
 	includeCompile("dev.hephaestus", "seedy-behavior", "1.0.1")
+	// Dependency of Immersive Portals Core:
+	modImplementation ('com.github.qouteall.ImmersivePortalsMod:imm_ptl_core:1.17-SNAPSHOT'){
+		exclude(group: "net.fabricmc.fabric-api")
+		transitive(false)
+	}
+
+// Dependency of the Miscellaneous Utility Library from qouteall
+	modImplementation ('com.github.qouteall.ImmersivePortalsMod:q_misc_util:1.17-SNAPSHOT'){
+		exclude(group: "net.fabricmc.fabric-api")
+		transitive(false)
+	}
 
 	modCompileOnly("com.terraformersmc:modmenu:2.0.0-beta.7") {
 		exclude module: "fabric-api"

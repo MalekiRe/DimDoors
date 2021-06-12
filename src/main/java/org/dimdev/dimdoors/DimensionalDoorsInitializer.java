@@ -78,6 +78,7 @@ public class DimensionalDoorsInitializer implements ModInitializer {
 	private static ModContainer dimDoorsMod;
 	private static DimensionalDoorBlockRegistrar dimensionalDoorBlockRegistrar;
 	private static DimensionalDoorItemRegistrar dimensionalDoorItemRegistrar;
+	private static boolean isIpLoaded;
 
     @NotNull
     public static MinecraftServer getServer() {
@@ -90,6 +91,11 @@ public class DimensionalDoorsInitializer implements ModInitializer {
 	public static DimensionalDoorBlockRegistrar getDimensionalDoorBlockRegistrar() {
 		return dimensionalDoorBlockRegistrar;
 	}
+
+	public static boolean isIpLoaded() {
+		return isIpLoaded;
+	}
+
 
 	public static DimensionalDoorItemRegistrar getDimensionalDoorItemRegistrar() {
 		return dimensionalDoorItemRegistrar;
@@ -118,7 +124,7 @@ public class DimensionalDoorsInitializer implements ModInitializer {
     	ServerLifecycleEvents.SERVER_STARTING.register((minecraftServer) -> {
             server = minecraftServer;
         });
-
+		isIpLoaded = FabricLoader.getInstance().isModLoaded("imm_ptl_core");
 		registerRegistries();
 
         ModBlocks.init();
