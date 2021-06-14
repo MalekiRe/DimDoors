@@ -329,10 +329,12 @@ public class DimensionalDoorBlock extends WaterLoggableDoorBlock implements Rift
 		}
 		world.setBlockState(pos, state, 10);
 		getRift(world, pos, state).setPortalState(false);
+		LOGGER.log(Level.ERROR, getRift(world, pos, state).getPortalState());
 	}
 
 	@Override
 	public void setupAsSendingPortal(BlockState state, World world, BlockPos pos) {
 		getRift(world, pos, state).setPortalState(true);
+		LOGGER.log(Level.ERROR, getRift(world, pos, state).getPortalState());
 	}
 }
