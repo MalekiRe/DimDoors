@@ -2,6 +2,7 @@ package org.dimdev.dimdoors.block.entity;
 
 import java.util.Optional;
 
+import com.sk89q.jnbt.CompoundTag;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.world.World;
@@ -47,23 +48,39 @@ public class EntranceRiftBlockEntity extends RiftBlockEntity {
 	private static final EscapeTarget ESCAPE_TARGET = new EscapeTarget(true);
 	private static final Logger LOGGER = LogManager.getLogger();
 	private boolean locked;
+	private Boolean portalState; //effectively a trite: null=no portal here; true=initialSendingPortal; false=initialReceivingPortal;
 
 	public EntranceRiftBlockEntity(BlockPos pos, BlockState state) {
 		super(ModBlockEntityTypes.ENTRANCE_RIFT, pos, state);
 	}
 
+
 	@Override
 	public void readNbt(NbtCompound nbt) {
 		super.readNbt(nbt);
 		locked = nbt.getBoolean("locked");
+		if (portalState != null) nbt.putBoolean("portal_state", portalState);
 	}
 
 	@Override
 	public NbtCompound writeNbt(NbtCompound nbt) {
 		nbt.putBoolean("locked", locked);
+		if (nbt.contains("portal_state")) this.portalState = nbt.getBoolean("portal_state");
 		return super.writeNbt(nbt);
+
 	}
 
+	public boolean isIpPortalLinked() {
+		return portalState != null;
+	}
+
+	public Boolean getPortalState() {
+		return portalState;
+	}
+
+	public void setPortalState(Boolean portalState) {
+		this.portalState = portalState;
+	}
 	@Override
 	public boolean teleport(Entity entity) {
 		//Sets the location where the player should be teleported back to if they are in limbo and try to escape, to be the entrance of the rift that took them into dungeons.
