@@ -6,7 +6,7 @@ import net.minecraft.util.math.EulerAngle;
 import net.minecraft.util.math.Vec3d;
 import org.dimdev.dimdoors.api.util.math.TransformationMatrix3d;
 
-public interface CoordinateTransformationProvider {
+public interface CoordinateTransformerProvider {
 	TransformationMatrix3d.TransformationMatrix3dBuilder transformationBuilder(BlockState state, BlockPos pos);
 
 	TransformationMatrix3d.TransformationMatrix3dBuilder rotatorBuilder(BlockState state, BlockPos pos);

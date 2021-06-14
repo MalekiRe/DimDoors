@@ -2,20 +2,14 @@ package org.dimdev.dimdoors.block.entity;
 
 import java.util.Optional;
 
-import com.sk89q.jnbt.CompoundTag;
-import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.world.World;
-import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.dimdev.dimdoors.DimensionalDoorsInitializer;
-import org.dimdev.dimdoors.api.util.Location;
-import org.dimdev.dimdoors.block.CoordinateTransformerBlock;
+import org.dimdev.dimdoors.block.CoordinateTransformerProvider;
 import org.dimdev.dimdoors.block.RiftProvider;
 import org.dimdev.dimdoors.api.client.DefaultTransformation;
 import org.dimdev.dimdoors.api.client.Transformer;
-import org.dimdev.dimdoors.item.DimensionalDoorItem;
 import org.dimdev.dimdoors.item.RiftKeyItem;
 import org.dimdev.dimdoors.pockets.DefaultDungeonDestinations;
 import org.dimdev.dimdoors.rift.registry.Rift;
@@ -42,7 +36,6 @@ import net.minecraft.util.math.Vec3d;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import org.dimdev.dimdoors.world.level.registry.DimensionalRegistry;
 
 public class EntranceRiftBlockEntity extends RiftBlockEntity {
 	private static final EscapeTarget ESCAPE_TARGET = new EscapeTarget(true);
@@ -124,8 +117,8 @@ public class EntranceRiftBlockEntity extends RiftBlockEntity {
 			DimensionalRegistry.getRiftRegistry().setOverworldRift(entity.getUuid(), new Location(World.OVERWORLD, ((ServerPlayerEntity)entity).getSpawnPointPosition()));
 		}
 		 */
-		if (block instanceof CoordinateTransformerBlock) {
-			CoordinateTransformerBlock transformer = (CoordinateTransformerBlock) block;
+		if (block instanceof CoordinateTransformerProvider) {
+			CoordinateTransformerProvider transformer = (CoordinateTransformerProvider) block;
 
 			if (transformer.isExitFlipped()) {
 				TransformationMatrix3d flipper = TransformationMatrix3d.builder().rotateY(Math.PI).build();
@@ -134,8 +127,8 @@ public class EntranceRiftBlockEntity extends RiftBlockEntity {
 				relativeAngle = flipper.transform(relativeAngle);
 				relativeVelocity = flipper.transform(relativeVelocity);
 			}
-
-			relativePos = relativePos.add(new Vec3d(0, 0, 1).multiply(0.6)); // TODO: skip this for Immersive Portals
+			//if(!DimensionalDoorsInitializer.isIpLoaded())
+				relativePos = relativePos.add(new Vec3d(0, 0, 1).multiply(0.6)); // TODO: skip this for Immersive Portals
 
 			TransformationMatrix3d.TransformationMatrix3dBuilder transformationBuilder = transformer.transformationBuilder(state, this.getPos());
 			TransformationMatrix3d.TransformationMatrix3dBuilder rotatorBuilder = transformer.rotatorBuilder(state, this.getPos());

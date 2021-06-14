@@ -42,7 +42,7 @@ public class AbsoluteRiftBlockEntityModifier implements LazyModifier {
 
 		return this;
 	}
-
+	/*
 	@Override
 	public NbtCompound toNbt(NbtCompound nbt) {
 		LazyModifier.super.toNbt(nbt);
@@ -57,6 +57,28 @@ public class AbsoluteRiftBlockEntityModifier implements LazyModifier {
 		nbt.put("rifts", riftsNbt);
 
 		return nbt;
+	}
+
+	 */
+	@Override
+	public NbtCompound toNbt(NbtCompound tag) {
+		LazyModifier.super.toNbt(tag);
+
+		NbtList riftsTag;
+		if (rifts != null) {
+			riftsTag = rifts.entrySet().parallelStream().unordered().map(entry -> {
+				NbtCompound riftTag = entry.getValue().writeNbt(new NbtCompound());
+				BlockPos pos = entry.getKey();
+				riftTag.putIntArray("Pos", new int[]{pos.getX(), pos.getY(), pos.getZ()});
+				return riftTag;
+			}).collect(Collectors.toCollection(NbtList::new));
+		} else {
+			riftsTag = new NbtList();
+			riftsTag.addAll(serializedRifts.values());
+		}
+		tag.put("rifts", riftsTag);
+
+		return tag;
 	}
 
 	@Override

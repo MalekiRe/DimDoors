@@ -2,12 +2,15 @@ package org.dimdev.dimdoors.block.door;
 
 import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents;
 import net.minecraft.block.*;
+import net.minecraft.state.property.Properties;
+import net.minecraft.util.BlockRotation;
 import net.minecraft.util.Pair;
+import org.apache.logging.log4j.Level;
 import org.dimdev.dimdoors.DimensionalDoorsInitializer;
+import org.dimdev.dimdoors.api.rift.target.EntityTarget;
 import org.dimdev.dimdoors.api.rift.target.Target;
 import org.dimdev.dimdoors.api.util.math.MathUtil;
 import org.dimdev.dimdoors.api.util.math.TransformationMatrix3d;
-import org.dimdev.dimdoors.block.CoordinateTransformerBlock;
 import org.dimdev.dimdoors.block.ModBlocks;
 import org.dimdev.dimdoors.block.PortalProvider;
 import org.dimdev.dimdoors.block.RiftProvider;
@@ -23,7 +26,6 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.fluid.Fluids;
 import net.minecraft.item.ItemPlacementContext;
-import net.minecraft.item.ItemStack;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
@@ -39,7 +41,7 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import qouteall.imm_ptl.core.portal.Portal;
 
-public class DimensionalDoorBlock extends WaterLoggableDoorBlock implements RiftProvider<EntranceRiftBlockEntity>, CoordinateTransformerBlock {
+public class DimensionalDoorBlock extends WaterLoggableDoorBlock implements RiftProvider<EntranceRiftBlockEntity>, PortalProvider {
 	public DimensionalDoorBlock(Settings settings) {
 		super(settings);
 	}
@@ -123,6 +125,7 @@ public class DimensionalDoorBlock extends WaterLoggableDoorBlock implements Rift
 		ImmersivePortalsUtil.linkPortals(sourceFront, targetBack);
 		ImmersivePortalsUtil.linkPortals(sourceBack, targetFront);
 
+
 		sourceFront.world.spawnEntity(sourceFront);
 		sourceBack.world.spawnEntity(sourceBack);
 
@@ -144,6 +147,27 @@ public class DimensionalDoorBlock extends WaterLoggableDoorBlock implements Rift
 		}
 		world.syncWorldEvent(player, state.get(OPEN) ? this.material == Material.METAL ? 1005 : 1006 : this.material == Material.METAL ? 1011 : 1012, pos, 0);
 		world.emitGameEvent(player, this.isOpen(state) ? GameEvent.BLOCK_OPEN : GameEvent.BLOCK_CLOSE, pos);
+		if (!world.isClient()) {
+			if (state.get(DoorBlock.OPEN)) {
+				BlockPos bottom = state.get(HALF) == DoubleBlockHalf.LOWER ? pos : pos.down();
+				BlockState doorState = world.getBlockState(bottom);
+				handleIpPortalCreation(doorState, world, bottom);
+			}
+			EntranceRiftBlockEntity rift = this.getRift(world, pos, state);
+			if (rift.isIpPortalLinked()) {
+				EntityTarget target = rift.getTarget().as(Targets.ENTITY);
+				if (target instanceof EntranceRiftBlockEntity) {
+					EntranceRiftBlockEntity targetRift = ((EntranceRiftBlockEntity) target);
+					BlockPos targetPos = targetRift.getPos();
+					World targetWorld = targetRift.getWorld();
+					BlockState targetState = targetWorld.getBlockState(targetPos);
+					if (targetState.contains(Properties.OPEN)) {
+						targetState = targetState.with(Properties.OPEN, state.get(Properties.OPEN));
+						targetWorld.setBlockState(targetPos, targetState, 10);
+					}
+				}
+			}
+		}
 		return ActionResult.SUCCESS;
 	}
 
@@ -161,6 +185,28 @@ public class DimensionalDoorBlock extends WaterLoggableDoorBlock implements Rift
 		}
 		return new EntranceRiftBlockEntity(pos, state);
 	}
+
+	public void createDetachedRift(World world, BlockPos pos) {
+		createDetachedRift(world, pos, world.getBlockState(pos));
+	}
+
+	public void createDetachedRift(World world, BlockPos pos, BlockState state) {
+		DoubleBlockHalf doubleBlockHalf = state.get(HALF);
+		BlockPos blockPos = pos;
+		BlockState blockState = world.getBlockState(pos);
+		BlockEntity blockEntity = world.getBlockEntity(pos);
+		if (doubleBlockHalf == DoubleBlockHalf.UPPER) {
+			blockPos = pos.down();
+			blockState = world.getBlockState(blockPos);
+			blockEntity = world.getBlockEntity(blockPos);
+		}
+		if (blockEntity instanceof EntranceRiftBlockEntity
+				&& blockState.get(HALF) == DoubleBlockHalf.LOWER) {
+			world.setBlockState(blockPos, ModBlocks.DETACHED_RIFT.getDefaultState().with(WATERLOGGED, blockState.get(WATERLOGGED)));
+			((DetachedRiftBlockEntity) world.getBlockEntity(blockPos)).setData(((EntranceRiftBlockEntity) blockEntity).getData());
+		}
+	}
+
 
 	@Override
 	public EntranceRiftBlockEntity getRift(World world, BlockPos pos, BlockState state) {
@@ -190,6 +236,7 @@ public class DimensionalDoorBlock extends WaterLoggableDoorBlock implements Rift
 
 	@Override
 	public void onBreak(World world, BlockPos pos, BlockState state, PlayerEntity player) {
+		LOGGER.log(Level.INFO, DimensionalDoorsInitializer.isIpLoaded());
 		DoubleBlockHalf doubleBlockHalf = state.get(HALF);
 		BlockPos blockPos = pos;
 		BlockState blockState = world.getBlockState(pos);
@@ -205,10 +252,10 @@ public class DimensionalDoorBlock extends WaterLoggableDoorBlock implements Rift
 			if (blockEntity instanceof EntranceRiftBlockEntity
 					&& blockState.get(HALF) == DoubleBlockHalf.LOWER
 					&& !(player.isCreative()
-						&& !DimensionalDoorsInitializer.getConfig().getDoorsConfig().placeRiftsInCreativeMode
-						)
+					&& !DimensionalDoorsInitializer.getConfig().getDoorsConfig().placeRiftsInCreativeMode
+			)
 			) {
-				world.setBlockState(blockPos, ModBlocks.DETACHED_RIFT.getDefaultState());
+				world.setBlockState(blockPos, ModBlocks.DETACHED_RIFT.getDefaultState().with(WATERLOGGED, blockState.get(WATERLOGGED)));
 				((DetachedRiftBlockEntity) world.getBlockEntity(blockPos)).setData(((EntranceRiftBlockEntity) blockEntity).getData());
 			}
 		}
@@ -223,9 +270,14 @@ public class DimensionalDoorBlock extends WaterLoggableDoorBlock implements Rift
 
 	@Override
 	public TransformationMatrix3d.TransformationMatrix3dBuilder transformationBuilder(BlockState state, BlockPos pos) {
-		return TransformationMatrix3d.builder()
+				if(!DimensionalDoorsInitializer.isIpLoaded()) {
+					return TransformationMatrix3d.builder()
 				.inverseTranslate(Vec3d.ofCenter(pos).add(Vec3d.of(state.get(DoorBlock.FACING).getVector()).multiply(-0.5)))
+				.inverseRotate(MathUtil.directionEulerAngle(state.get(DoorBlock.FACING).getOpposite())); }
+				return TransformationMatrix3d.builder().
+						inverseTranslate(Vec3d.ofBottomCenter(pos.up()).add(Vec3d.of(state.get(DoorBlock.FACING).getVector()).multiply(-0.4997))) // -0.3124
 				.inverseRotate(MathUtil.directionEulerAngle(state.get(DoorBlock.FACING).getOpposite()));
+
 	}
 
 	@Override
@@ -252,9 +304,35 @@ public class DimensionalDoorBlock extends WaterLoggableDoorBlock implements Rift
 				return;
 			}
 			if (blockEntity instanceof EntranceRiftBlockEntity && state.get(HALF) == DoubleBlockHalf.LOWER) {
-				world.setBlockState(pos, ModBlocks.DETACHED_RIFT.getDefaultState());
+				world.setBlockState(pos, ModBlocks.DETACHED_RIFT.getDefaultState().with(WATERLOGGED, state.get(WATERLOGGED)));
 				((DetachedRiftBlockEntity) world.getBlockEntity(pos)).setData(((EntranceRiftBlockEntity) blockEntity).getData());
 			}
 		});
+	}
+
+
+	@Override
+	public int getPortalHeight() {
+		return 2;
+	}
+
+	@Override
+	public int getPortalWidth() {
+		return 1;
+	}
+
+	@Override
+	public void setupAsReceivingPortal(BlockState state, World world, BlockPos pos, BlockState sourceState) {
+		state = state.rotate(BlockRotation.CLOCKWISE_180);
+		if (sourceState.contains(Properties.DOOR_HINGE)) {
+			state = state.with(Properties.DOOR_HINGE, sourceState.get(Properties.DOOR_HINGE));
+		}
+		world.setBlockState(pos, state, 10);
+		getRift(world, pos, state).setPortalState(false);
+	}
+
+	@Override
+	public void setupAsSendingPortal(BlockState state, World world, BlockPos pos) {
+		getRift(world, pos, state).setPortalState(true);
 	}
 }

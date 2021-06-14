@@ -11,10 +11,18 @@ import org.dimdev.dimdoors.api.util.math.TransformationMatrix3d;
 import qouteall.imm_ptl.core.portal.Portal;
 import qouteall.q_misc_util.my_util.DQuaternion;
 
-public interface PortalProvider extends CoordinateTransformationProvider {
+public interface PortalProvider extends CoordinateTransformerProvider {
 	int getPortalHeight();
 
 	int getPortalWidth();
+	 static DQuaternion getRotationBetween(Vec3d from, Vec3d to) {
+		from = from.normalize();
+		to = to.normalize();
+		Vec3d axis = from.crossProduct(to).normalize();
+		double cos = from.dotProduct(to);
+		double angle = Math.acos(cos);
+		return DQuaternion.rotationByRadians(axis, angle);
+	}
 
 	default Pair<Portal, Portal> createTwoSidedUnboundPortal(BlockState state, World world, BlockPos pos, TransformationMatrix3d.TransformationMatrix3dBuilder targetRotatorBuilder) {
 		TransformationMatrix3d.TransformationMatrix3dBuilder transformationBuilder = transformationBuilder(state, pos);
@@ -32,8 +40,7 @@ public interface PortalProvider extends CoordinateTransformationProvider {
 		if (first.squaredDistanceTo(second.multiply(-1)) < 0.01) {
 			rotationTransformation = DQuaternion.rotationByDegrees(new Vec3d(0, 1, 0), 180).toMcQuaternion(); // weird edge case
 		} else {
-			//This shit hasn't ported properly boooo.
-			//rotationTransformation = DQuaternion.(first, second, 0.5F).toMcQuaternion();
+			rotationTransformation = getRotationBetween(first, second).toMcQuaternion();
 		}
 
 		Portal portal = Portal.entityType.create(world);
