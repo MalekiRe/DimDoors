@@ -21,10 +21,10 @@ repositories {
 		url = "https://maven.fabricmc.net/"
 	}
 
-	maven {
-		name = "Haven's Maven"
-		url = "https://hephaestus.dev/release"
-	}
+//	maven {
+//		name = "Haven's Maven"
+//		url = "https://hephaestus.dev/release"
+//	}
 
 	maven {
 		url = "https://www.cursemaven.com"
@@ -118,9 +118,9 @@ minecraft {
 
 dependencies {
 	minecraft "com.mojang:minecraft:1.17"
-	mappings "net.fabricmc:yarn:1.17+build.5:v2"
-	modImplementation "net.fabricmc:fabric-loader:0.11.3"
-	modImplementation "net.fabricmc.fabric-api:fabric-api:0.34.9+1.17"
+	mappings "net.fabricmc:yarn:1.17+build.13:v2"
+	modImplementation "net.fabricmc:fabric-loader:0.11.6"
+	modImplementation "net.fabricmc.fabric-api:fabric-api:0.36.0+1.17"
 	includeCompile("com.flowpowered", "flow-math", "1.0.3")
 	includeCompile("org.jgrapht", "jgrapht-core", "1.1.0")
 	includeCompile("com.github.DimensionalDevelopment", "poly2tri.java", "0.1.1")
@@ -136,7 +136,7 @@ dependencies {
 	includeCompile("io.github.onyxstudios.Cardinal-Components-API", "cardinal-components-world", "3.0.0-nightly.1.17-pre2")
 	includeCompile("io.github.onyxstudios.Cardinal-Components-API", "cardinal-components-chunk", "3.0.0-nightly.1.17-pre2")
 //	includeCompile("me.sargunvohra.mcmods", "autoconfig1u", "3.3.1")
-	includeCompile("dev.hephaestus", "seedy-behavior", "1.0.1")
+//	includeCompile("dev.hephaestus", "seedy-behavior", "1.0.1")
 
 	modCompileOnly("com.terraformersmc:modmenu:2.0.0-beta.7") {
 		exclude module: "fabric-api"
@@ -200,8 +200,9 @@ curseforge {
 		changelog = file('changelog.txt').text
 		releaseType = 'beta'
 		addGameVersion '1.17'
+		addGameVersion 'Fabric'
 		mainArtifact(file("${project.buildDir}/libs/${archivesBaseName}-${version}.jar")) {
-			displayName = "[21w11a] Dimensional Doors ${version}"
+			displayName = "[1.17] Dimensional Doors ${version}"
 		}
 		afterEvaluate {
 			uploadTask.dependsOn("remapJar")
@@ -219,7 +220,7 @@ test {
 	//useJUnitPlatform()
 }
 
-tasks.test.doFirst {Test test ->
+tasks.test.doFirst {test ->
 	if (!test.workingDir.exists()) {
 		test.workingDir.mkdirs();
 	}

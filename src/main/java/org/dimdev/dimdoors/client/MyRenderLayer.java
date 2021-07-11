@@ -63,7 +63,6 @@ public class MyRenderLayer extends RenderLayer {
 							false,
 							false)
 					)
-//					.alpha(Alpha.HALF_ALPHA)
 					.shader(RenderPhase.POSITION_COLOR_TEXTURE_SHADER)
 					.build(false)
 	);

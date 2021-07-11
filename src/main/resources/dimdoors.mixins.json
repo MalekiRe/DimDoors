@@ -3,7 +3,6 @@
   "package": "org.dimdev.dimdoors.mixin",
   "compatibilityLevel": "JAVA_16",
   "mixins": [
-    "BlockBoxMixin",
     "BlockMixin",
     "DefaultBiomeFeaturesMixin",
     "ExplosionMixin",
@@ -14,7 +13,9 @@
     "RegistryKeyMixin",
     "ServerPlayerEntityMixin",
     "ServerPlayerInteractionManagerMixin",
+    "ServerPlayNetworkHandlerMixin",
     "StructurePoolMixin",
+    "WorldMixin",
     "accessor.BuiltinBiomesAccessor",
     "accessor.ChunkGeneratorAccessor",
     "accessor.DefaultParticleTypeAccessor",
@@ -33,6 +34,7 @@
     "client.ExtendedClientPlayNetworkHandlerMixin",
     "client.GameRendererMixin",
     "client.InGameHudMixin",
+    "client.PostProcessShaderMixin",
     "client.WorldRendererMixin",
     "client.accessor.RenderLayerAccessor"
   ],
